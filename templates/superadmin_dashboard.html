@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Superadmin Dashboard</title>
+  <link rel="stylesheet" href="/static/superadmin.css">
+</head>
+<body>
+  <h2 class="dashboard-title">Superadmin Dashboard</h2>
+
+  
+  <div class="logout-container">
+    <button onclick="location.href='/logout'" class="logout-button">Logout</button>
+  </div>
+
+  <h3 class="pending-title">Pending Users:</h3>
+  <div class="user-container">
+    {% for user in users %}
+    <div class="user-card">
+      <div class="user-field">
+        <span class="icon">👤</span>
+        <strong>{{ user.name }}</strong>
+      </div>
+      <div class="user-field">
+        <span class="icon">📧</span>
+        <span>{{ user.email }}</span>
+      </div>
+      <form action="/superadmin/approve/{{ user.id }}" method="post">
+        <div class="user-field">
+          <span class="icon">🛡️</span>
+          <select name="role">
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+          </select>
+        </div>
+        <div class="permissions">
+          <span class="icon"></span> Permissions:
+          <label><input type="checkbox" name="permissions" value="read"> Read</label>
+          <label><input type="checkbox" name="permissions" value="write"> Write</label>
+          <label><input type="checkbox" name="permissions" value="edit"> Edit</label>
+          <label><input type="checkbox" name="permissions" value="assign_roles"> Assign Roles</label>
+        </div>
+        <div class="actions">
+          <button type="submit">Approve</button>
+        </div>  
+      </form>
+
+      
+      <form action="/superadmin/deny/{{ user.id }}" method="post">
+        <div class="actions">
+          <button type="submit" class="deny-button">Deny</button>
+        </div>
+        
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</body>
+</html>

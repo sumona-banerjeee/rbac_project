@@ -1,0 +1,75 @@
+body.user-dashboard-body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #222; 
+}
+
+body.user-dashboard-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: url('/static/background/bg9.jpg') no-repeat center center fixed;
+  background-size: cover;
+  filter: blur(7px);
+  opacity: 0.8;
+  z-index: -1;
+}
+
+
+.user-dashboard-container {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px 50px;
+  border-radius: 15px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Welcome header */
+.user-dashboard-container h2 {
+  font-size: 2.5rem;
+  color: #222;
+  margin-bottom: 30px;
+  font-weight: 700;
+}
+
+/* Menu list */
+.user-dashboard-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.user-dashboard-menu li {
+  margin: 20px 0;
+}
+
+.user-dashboard-menu a {
+  text-decoration: none;
+  background-color: #007bff;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+.user-dashboard-menu a:hover {
+  background-color: #0056b3;
+  color: #fff;
+  cursor: pointer;
+}

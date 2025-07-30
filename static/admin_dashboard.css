@@ -1,0 +1,72 @@
+body.dashboard-body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+body.dashboard-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: url('/static/background/bg6.jpeg') no-repeat center center fixed;
+  background-size: cover;
+  filter: blur(3px);
+  z-index: -1;
+}
+
+
+
+.dashboard-container {
+  background: cyan; /* Slight transparency for depth */
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  z-index: 1;
+  position: relative;
+}
+
+
+
+.welcome-text {
+  color: #2c3e50;
+  margin-bottom: 30px;
+  font-size: 35px;
+}
+
+/* Dashboard Menu */
+.dashboard-menu {
+  list-style-type: none;
+  padding: 0;
+}
+
+.dashboard-menu li {
+  margin: 15px 0;
+}
+
+.dashboard-menu a {
+  text-decoration: none;
+  color: black;
+  background-color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.dashboard-menu a:hover {
+  background-color: #0056b3;
+  color: white;
+}
+

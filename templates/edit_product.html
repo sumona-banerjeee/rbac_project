@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Product</title>
+  <link rel="stylesheet" href="/static/edit_product.css">
+</head>
+<body>
+  <h2>Edit Product</h2>
+  <form method="post">
+    <input type="text" name="name" value="{{ product.name }}" required><br>
+    <input type="text" name="description" value="{{ product.description }}"><br>
+    <input type="number" name="price" step="0.01" value="{{ product.price }}" required><br>
+    <select name="category">
+      <option value="electronics" {% if product.category == 'electronics' %}selected{% endif %}>Electronics</option>
+      <option value="fashion" {% if product.category == 'fashion' %}selected{% endif %}>Fashion</option>
+      <option value="books" {% if product.category == 'books' %}selected{% endif %}>Books</option>
+      <option value="other" {% if product.category == 'other' %}selected{% endif %}>Other</option>
+    </select><br>
+    <button type="submit">Update</button>
+    <a href="/admin/products"><button type="button">Cancel</button></a>
+  </form>
+</body>
+</html>
