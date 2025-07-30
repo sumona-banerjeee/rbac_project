@@ -1,0 +1,104 @@
+/* General styles */
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 2rem;
+  background: rgb(238, 238, 220);
+  color: black;
+
+}
+
+/* Blurred background image */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('/static/background/bg5.jpg') no-repeat center center/cover;
+  filter: blur(3px);
+  z-index: -1;
+}
+
+
+
+h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+/* User card container */
+.user-card {
+  background: rgb(184, 236, 236);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin: 1rem auto;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+
+/* User info section */
+.user-info {
+  flex: 1;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.user-info strong {
+  font-weight: bold;
+  color: black;
+}
+
+/* Delete form and button */
+form {
+  margin: 0;
+}
+
+button {
+  background:rgb(7, 202, 182);
+  color: white;
+  border: none;
+  padding: 0.5rem 4rem;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #c0392b;
+}
+
+.button-group {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+.logout-button,
+.dashboard-button {
+  background: #1abc9c;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.logout-button:hover,
+.dashboard-button:hover {
+  background: #16a085;
+}

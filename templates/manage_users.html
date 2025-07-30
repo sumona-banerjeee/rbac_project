@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manage Users</title>
+  <link rel="stylesheet" href="/static/manage_users.css">
+</head>
+<body>
+
+  <!-- Grouped buttons -->
+  <div class="button-group">
+    <form method="get" action="/logout">
+      <button class="logout-button" type="submit">Logout</button>
+    </form>
+
+    <form method="get" action="/superadmin/dashboard">
+      <button class="dashboard-button" type="submit">Back to Dashboard</button>
+    </form>
+  </div>
+
+  <h2>Approved Users (Admin + User)</h2>
+
+  {% for user in users %}
+    <div class="user-card">
+      <div class="user-info">
+        <strong>{{ user.name }}</strong> | {{ user.email }} | Role: {{ user.role }}
+      </div>
+      <form method="post" action="/superadmin/delete-user/{{ user.id }}">
+        <button type="submit" onclick="return confirm('Are you sure to delete?')">Delete</button>
+      </form>
+    </div>
+  {% endfor %}
+
+</body>
+</html>

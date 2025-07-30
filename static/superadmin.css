@@ -103,8 +103,8 @@ button:hover {
 }
 
 .logout-button {
-  background: wheat;
-  color: black;
+  background: #3498db;
+  color: white;
   padding: 0.6rem 1.2rem;
   border: none;
   border-radius: 8px;
@@ -138,4 +138,28 @@ button:hover {
 
 .deny-button:hover {
   background: #c0392b;
+}
+
+
+.nav-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.nav-links a {
+  display: inline-block;
+  background: #3498db;
+  color: white;
+  text-decoration: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+
+.nav-links a:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
 }

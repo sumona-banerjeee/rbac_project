@@ -8,7 +8,6 @@
 <body>
   <h2 class="dashboard-title">Superadmin Dashboard</h2>
 
-  
   <div class="logout-container">
     <button onclick="location.href='/logout'" class="logout-button">Logout</button>
   </div>
@@ -18,42 +17,51 @@
     {% for user in users %}
     <div class="user-card">
       <div class="user-field">
-        <span class="icon">👤</span>
+        <span class="icon" title="User">👤</span>
         <strong>{{ user.name }}</strong>
       </div>
       <div class="user-field">
-        <span class="icon">📧</span>
+        <span class="icon" title="Email">📧</span>
         <span>{{ user.email }}</span>
       </div>
+
+      <!-- Approve Form -->
       <form action="/superadmin/approve/{{ user.id }}" method="post">
         <div class="user-field">
-          <span class="icon">🛡️</span>
-          <select name="role">
+          <span class="icon" title="Role">🛡️</span>
+          <select name="role" required>
             <option value="admin">Admin</option>
             <option value="user">User</option>
           </select>
         </div>
+
         <div class="permissions">
-          <span class="icon"></span> Permissions:
-          <label><input type="checkbox" name="permissions" value="read"> Read</label>
-          <label><input type="checkbox" name="permissions" value="write"> Write</label>
-          <label><input type="checkbox" name="permissions" value="edit"> Edit</label>
-          <label><input type="checkbox" name="permissions" value="assign_roles"> Assign Roles</label>
+          <span class="icon" title="Permissions">🔒</span> Permissions:
+          <label><input type="checkbox" name="permissions[]" value="read"> Read</label>
+          <label><input type="checkbox" name="permissions[]" value="write"> Write</label>
+          <label><input type="checkbox" name="permissions[]" value="edit"> Edit</label>
+          <label><input type="checkbox" name="permissions[]" value="assign_roles"> Assign Roles</label>
         </div>
+
         <div class="actions">
           <button type="submit">Approve</button>
-        </div>  
+        </div>
       </form>
 
-      
+      <!-- Deny Form (Removed csrf_token line) -->
       <form action="/superadmin/deny/{{ user.id }}" method="post">
         <div class="actions">
           <button type="submit" class="deny-button">Deny</button>
         </div>
-        
       </form>
     </div>
     {% endfor %}
+  </div>
+
+  <!-- Navigation Links -->
+  <div class="nav-links">
+    <a href="/superadmin/manage-users">Manage Users</a>
+    <a href="/superadmin/analytics-ui">View Analytics</a>
   </div>
 </body>
 </html>

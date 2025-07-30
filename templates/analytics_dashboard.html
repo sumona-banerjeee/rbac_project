@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Analytics Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    canvas {
+      max-width: 600px;
+      margin: 2rem auto;
+      display: block;
+    }
+  </style>
+  <link rel="stylesheet" href="/static/analytics_dashboard.css">
+</head>
+<body>
+  <h2 style="text-align:center;">📊 Superadmin Analytics Dashboard</h2>
+
+<div style="text-align:center; margin-bottom: 20px;">
+  <a href="/superadmin/dashboard">
+    <button style="padding: 10px 20px; background-color: #2ecc71; color: white; border: none; border-radius: 5px;">
+      Back to Dashboard
+    </button>
+  </a>
+</div>
+
+
+
+  <div class="canvas-grid">
+  <canvas id="topProductsChart"></canvas>
+  <canvas id="salesTrendChart"></canvas>
+  <canvas id="buyersChart"></canvas>
+  <canvas id="sellersChart"></canvas>
+</div>
+
+<!-- Optional: Additional full-width chart below -->
+<canvas id="paymentPieChart"></canvas>
+
+
+  <script>
+    fetch("/superadmin/analytics-data")
+      .then(res => res.json())
+      .then(data => {
+        const tpCtx = document.getElementById("topProductsChart");
+        new Chart(tpCtx, {
+          type: "bar",
+          data: {
+            labels: data.top_products.map(p => p.name),
+            datasets: [{
+              label: "Top Selling Products",
+              data: data.top_products.map(p => p.count),
+              backgroundColor: "#3498db"
+            }]
+          }
+        });
+
+        const stCtx = document.getElementById("salesTrendChart");
+        new Chart(stCtx, {
+          type: "line",
+          data: {
+            labels: data.sales_trend.map(s => s.date),
+            datasets: [{
+              label: "Sales Trend",
+              data: data.sales_trend.map(s => s.count),
+              borderColor: "#2ecc71",
+              fill: false
+            }]
+          }
+        });
+
+        const buyersCtx = document.getElementById("buyersChart");
+        new Chart(buyersCtx, {
+          type: "bar",
+          data: {
+            labels: data.active_buyers.map(u => u.name),
+            datasets: [{
+              label: "Active Buyers",
+              data: data.active_buyers.map(u => u.count),
+              backgroundColor: "#9b59b6"
+            }]
+          }
+        });
+
+        const sellersCtx = document.getElementById("sellersChart");
+        new Chart(sellersCtx, {
+          type: "bar",
+          data: {
+            labels: data.active_sellers.map(u => u.name),
+            datasets: [{
+              label: "Active Sellers",
+              data: data.active_sellers.map(u => u.count),
+              backgroundColor: "#e67e22"
+            }]
+          }
+        });
+
+        const pieCtx = document.getElementById("paymentPieChart");
+        new Chart(pieCtx, {
+          type: "pie",
+          data: {
+            labels: data.payment_split.map(p => p.method),
+            datasets: [{
+              data: data.payment_split.map(p => p.count),
+              backgroundColor: ["#1abc9c", "#f1c40f", "#e74c3c"]
+            }]
+          }
+        });
+      });
+  </script>
+</body>
+</html>
