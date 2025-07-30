@@ -7,10 +7,10 @@ Build a **secure RBAC web system** using FastAPI, PostgreSQL, and HTML/CSS where
 •	Users can **browse and buy** products.
 •	Superadmin will monitor everything and **analytics**.
 ## Roles & Permissions
-Roles       |	Permissions
-Super-admin	| View pending users, approve/deny, assign roles, view analytics, delete the user details or can edit.
-Admin	    | Create, Read, Edit, Delete own products 
-User	    | Read and buy products
+Roles  &	Permissions
+**Super-admin:** View pending users, approve/deny, assign roles, view analytics, delete the user details or can edit.
+**Admin:** Create, Read, Edit, Delete own products 
+**User:** Read and buy products
 
 
 Permissions include: `read`, `write`, `edit`, ‘assign_roles’(only for superadmin).
@@ -24,7 +24,7 @@ EDIT: This user can add products, delete their own product, and edit their produ
 - **Authentication:** JWT + HTTPOnly Cookies
 - **ORM:** SQLAlchemy
 - **Password Security:** bcrypt
--**Login with Google & Forget password: ** Oauth 2.0 : Future Scope
+- **Login with Google & Forget password:** Oauth 2.0 : Future Scope
 ## How it Works?
 ### 1. Signup/Login
 •	Any visitor can sign up with **name, email, password**
@@ -51,10 +51,10 @@ Approved users can
 •	Buy (write), View (read) products
 •	Cannot see delete/edit options
 ## Login Details (for testing)
-Role	    | Email	                        | Password
-Super-admin	| sumobanerjee2000@gmail.com	| Pre-set
-Admin	    | Post-approval	                | Chosen by the users
-User	    | Post-approval	                | Chosen by the users
+###Role	    | Email	                        | Password
+**Super-admin:** sumobanerjee2000@gmail.com	| Pre-set
+**Admin:**	    Post-approval	                | Chosen by the users
+**User:**	    Post-approval	                | Chosen by the users
 ## Future Enhancements
 •	Add email notifications to Super-admin on user signup
 •	Email notification for the approval for the user and admin
