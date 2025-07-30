@@ -7,11 +7,10 @@ Build a **secure RBAC web system** using FastAPI, PostgreSQL, and HTML/CSS where
 •	Users can **browse and buy** products.
 •	Superadmin will monitor everything and **analytics**.
 ## Roles & Permissions
-Roles  &	Permissions
-
-Super-admin: View pending users, approve/deny, assign roles, view analytics, delete the user details or can edit.
-Admin: Create, Read, Edit, Delete own products 
-User: Read and buy products
+###Roles  &	Permissions
+**Super-admin:** View pending users, approve/deny, assign roles, view analytics, delete the user details or can edit.
+**Admin:** Create, Read, Edit, Delete own products 
+**User:** Read and buy products
 
 
 Permissions include: `read`, `write`, `edit`, ‘assign_roles’(only for superadmin).
@@ -52,10 +51,10 @@ Approved users can
 •	Buy (write), View (read) products
 •	Cannot see delete/edit options
 ## Login Details (for testing)
-Role	    | Email	                        | Password
-Super-admin	| sumobanerjee2000@gmail.com	| Pre-set
-Admin	    | Post-approval	                | Chosen by the users
-User	    | Post-approval	                | Chosen by the users
+###Role	    | Email	                        | Password
+**Super-admin:** sumobanerjee2000@gmail.com	| Pre-set
+**Admin:**	    Post-approval	                | Chosen by the users
+**User:**	    Post-approval	                | Chosen by the users
 ## Future Enhancements
 •	Add email notifications to Super-admin on user signup
 •	Email notification for the approval for the user and admin
