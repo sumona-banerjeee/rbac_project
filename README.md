@@ -24,7 +24,7 @@ EDIT: This user can add products, delete their own product, and edit their produ
 - **Authentication:** JWT + HTTPOnly Cookies
 - **ORM:** SQLAlchemy
 - **Password Security:** bcrypt
--**Login with Google & Forget password: ** Oauth 2.0 : Future Scope
+- **Login with Google & Forget password:** Oauth 2.0 : Future Scope
 ## How it Works?
 ### 1. Signup/Login
 •	Any visitor can sign up with **name, email, password**
