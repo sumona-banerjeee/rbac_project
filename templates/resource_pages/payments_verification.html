@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>💳 Payments Verification</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>💳 Payments Verification</h2>
+
+  {% if "read" in permissions %}
+    <h3>Pending Payments</h3>
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Product</th>
+        <th>Amount</th>
+        <th>Method</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+      {% for payment in payments %}
+        <tr>
+          <td>{{ payment.id }}</td>
+          <td>{{ payment.name }}</td>
+          <td>{{ payment.price }}</td>
+          <td>{{ payment.payment_method }}</td>
+          <td>{{ payment.payment_status }}</td>
+          <td>
+            {% if "update" in permissions %}
+              <form action="/admin/resource/payments_verification/update/{{ payment.id }}" method="post" style="display:inline;">
+                <select name="payment_status">
+                  <option value="verified" {% if payment.payment_status == 'verified' %}selected{% endif %}>Verify</option>
+                  <option value="failed" {% if payment.payment_status == 'failed' %}selected{% endif %}>Reject</option>
+                </select>
+                <button type="submit">Update</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p style="color: red;">You do not have permission to view payment verifications.</p>
+  {% endif %}
+</body>
+</html>

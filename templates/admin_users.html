@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin - Products</title>
+  <title>Admin - Users</title>
   <link rel="stylesheet" href="/static/admin_styles.css">
 </head>
 <body>
-  <h1>Products</h1>
+  <h1>Users</h1>
   <ul>
-    {% for product in products %}
-    <li>{{ product.name }} - ₹{{ product.price }}
-      <form method="post" action="/admin/products/delete/{{ product.id }}">
+    {% for user in users %}
+    <li>{{ user.name }} - {{ user.email }}
+      <form method="post" action="/admin/users/delete/{{ user.id }}">
         <button type="submit">Delete</button>
       </form>
     </li>

@@ -7,9 +7,12 @@ from database import Base
 from datetime import datetime
 import enum
 from sqlalchemy import Enum as SqlEnum
+from sqlalchemy import DateTime
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Text, DateTime
+from datetime import datetime
 
 
-# --- Enums ---
 
 class RoleEnum(str, enum.Enum):
     superadmin = "superadmin"
@@ -34,22 +37,19 @@ class PaymentMethod(str, enum.Enum):
     card = "card"
 
 
-# --- Association Table ---
 
 user_permissions = Table(
     "user_permissions",
     Base.metadata,
     Column("user_id", Integer, ForeignKey("users.id")),
-    Column("permission_name", String, ForeignKey("permissions.name"))
+    Column("permission_name", SqlEnum(PermissionEnum), ForeignKey("permissions.name"))
 )
 
 
-# --- Models ---
 
 class Permission(Base):
     __tablename__ = "permissions"
-
-    name = Column(String, primary_key=True)
+    name = Column(SqlEnum(PermissionEnum), primary_key=True)
     users = relationship("User", secondary=user_permissions, back_populates="permissions")
 
 
@@ -65,10 +65,56 @@ class User(Base):
     is_denied = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)  
+    creator = relationship("User", remote_side=[id], backref="created_users")  
+
+    
     permissions = relationship("Permission", secondary=user_permissions, back_populates="users")
 
+    
     products = relationship("Product", back_populates="owner")
-    purchases = relationship("Purchase", back_populates="buyer")  # 👈 user as buyer
+    purchases = relationship("Purchase", back_populates="buyer")
+    resource_permissions = relationship("ResourcePermission", back_populates="user")
+
+   
+    def has_permission(self, db, resource_name: str, action: str) -> bool:
+        from models import Resource, ResourcePermission  # avoid circular imports
+        resource = db.query(Resource).filter_by(name=resource_name).first()
+        if not resource:
+            return False
+
+        rp = db.query(ResourcePermission).filter_by(user_id=self.id, resource_id=resource.id).first()
+        if not rp:
+            return False
+
+        return {
+            "create": rp.can_create,
+            "read": rp.can_read,
+            "update": rp.can_update,
+            "delete": rp.can_delete,
+        }.get(action, False)
+
+    
+    def get_resource_permissions(self, db, resource_name):
+        from models import Resource, ResourcePermission
+        resource = db.query(Resource).filter_by(name=resource_name).first()
+        if not resource:
+            return []
+
+        rp = db.query(ResourcePermission).filter_by(
+            user_id=self.id,
+            resource_id=resource.id
+        ).first()
+
+        if not rp:
+            return []
+
+        perms = []
+        if rp.can_create: perms.append("create")
+        if rp.can_read: perms.append("read")
+        if rp.can_update: perms.append("update")
+        if rp.can_delete: perms.append("delete")
+        return perms
 
 
 class Product(Base):
@@ -88,8 +134,12 @@ class Product(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_sold = Column(Boolean, default=False)
 
-    owner = relationship("User", back_populates="products")
+   
+    owner = relationship("User", back_populates="products", foreign_keys=[created_by])
+    
     purchases = relationship("Purchase", back_populates="product")
+
+
 
 
 class Purchase(Base):
@@ -102,3 +152,34 @@ class Purchase(Base):
 
     product = relationship("Product", back_populates="purchases")
     buyer = relationship("User", back_populates="purchases")
+
+
+class Resource(Base):
+    __tablename__ = "resources"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True) 
+
+
+class ResourcePermission(Base):
+    __tablename__ = "resource_permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    resource_id = Column(Integer, ForeignKey("resources.id"))
+
+    can_create = Column(Boolean, default=False)
+    can_read = Column(Boolean, default=False)
+    can_update = Column(Boolean, default=False)
+    can_delete = Column(Boolean, default=False)
+
+    user = relationship("User", back_populates="resource_permissions")
+    resource = relationship("Resource")
+
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(100))
+    content = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)

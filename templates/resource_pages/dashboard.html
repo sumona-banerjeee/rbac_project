@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📊 Dashboard</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>📊 Dashboard Overview</h2>
+
+  {% if "read" in permissions %}
+    <div class="dashboard-widgets">
+
+      <!-- Example KPI Cards -->
+      <div class="card">
+        <h3>Total Users</h3>
+        <p>{{ stats.total_users }}</p>
+      </div>
+
+      <div class="card">
+        <h3>Total Sales</h3>
+        <p>₹{{ stats.total_sales }}</p>
+      </div>
+
+      <div class="card">
+        <h3>Products Listed</h3>
+        <p>{{ stats.total_products }}</p>
+      </div>
+
+      <!-- Example Chart -->
+      <div style="width: 600px;">
+        <canvas id="salesChart"></canvas>
+      </div>
+
+      <script>
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: {{ stats.sales_dates | safe }},
+            datasets: [{
+              label: 'Sales Over Time',
+              data: {{ stats.sales_values | safe }},
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 2,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: true }
+            }
+          }
+        });
+      </script>
+
+    </div>
+  {% else %}
+    <p style="color: red;">You do not have permission to view dashboard.</p>
+  {% endif %}
+</body>
+</html>

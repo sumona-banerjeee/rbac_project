@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Users Management</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>Users Management</h2>
+
+  {% if "create" in permissions %}
+    <h4>Create New User</h4>
+    <form action="/admin/resource/users_management/create" method="post">
+      <input type="text" name="name" placeholder="Full Name" required>
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <select name="role">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button type="submit">Create</button>
+    </form>
+  {% endif %}
+
+  <hr>
+
+  {% if "read" in permissions %}
+    {% if users %}
+      <table border="1" cellpadding="5">
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Approved</th><th>Active</th><th>Created By</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+            <tr>
+              <td>{{ user.id }}</td>
+              <td>{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.is_approved }}</td>
+              <td>{{ user.is_active }}</td>
+              <td>{{ user.creator.name if user.creator else "N/A" }}</td>
+              <td>
+                {% if "update" in permissions %}
+                  <form action="/admin/resource/users_management/update/{{ user.id }}" method="post" style="display:inline;">
+                    <select name="role">
+                      <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                      <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                    <button type="submit">Update</button>
+                  </form>
+                {% endif %}
+
+                {% if "delete" in permissions %}
+                  <form action="/admin/resource/users_management/delete/{{ user.id }}" method="post" style="display:inline;" onsubmit="return confirm('Delete this user?');">
+                    <button type="submit">Delete</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No users available.</p>
+    {% endif %}
+  {% else %}
+    <p style="color:red;">You do not have permission to view users.</p>
+  {% endif %}
+</body>
+</html>

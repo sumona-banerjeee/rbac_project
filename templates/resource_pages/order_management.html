@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📦 Order Management</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>📦 Order Management</h2>
+
+  {% if "create" in permissions %}
+    <h3>Create New Order</h3>
+    <form action="/admin/resource/order_management/create" method="post">
+      <input type="text" name="product" placeholder="Product Name" required>
+      <input type="number" name="quantity" placeholder="Quantity" required>
+      <input type="text" name="status" placeholder="Status" required>
+      <button type="submit">Create Order</button>
+    </form>
+  {% endif %}
+
+  {% if "read" in permissions %}
+    <h3>Order List</h3>
+    <table>
+      <tr>
+        <th>Order ID</th>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+      {% for order in orders %}
+        <tr>
+          <td>{{ order.id }}</td>
+          <td>{{ order.product }}</td>
+          <td>{{ order.quantity }}</td>
+          <td>{{ order.status }}</td>
+          <td>
+            {% if "update" in permissions %}
+              <form action="/admin/resource/order_management/update/{{ order.id }}" method="post" style="display:inline;">
+                <input type="text" name="status" placeholder="New Status" required>
+                <button type="submit">Update</button>
+              </form>
+            {% endif %}
+            {% if "delete" in permissions %}
+              <form action="/admin/resource/order_management/delete/{{ order.id }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p style="color: red;">You do not have permission to view orders.</p>
+  {% endif %}
+</body>
+</html>

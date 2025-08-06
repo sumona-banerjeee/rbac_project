@@ -4,13 +4,27 @@
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="/static/admin_dashboard.css">
 </head>
-<body class="dashboard-body">
-  <div class="dashboard-container">
-    <h2 class="welcome-text">👋 Welcome Admin, {{ user.name }}</h2>
-    <ul class="dashboard-menu">
-      <li><a href="/admin/products">📦 Manage Products</a></li>
-      <li><a href="/logout">🚪 Logout</a></li>
-    </ul>
+<body>
+  <h2 class="dashboard-title">Admin Dashboard</h2>
+
+  <div class="logout-container">
+    <button onclick="location.href='/logout'" class="logout-button">Logout</button>
   </div>
+
+  <!-- 🔹 Admin Resource Components -->
+  <div class="components">
+    {% for resource in resources %}
+      <div class="resource-card">
+        <h3>{{ resource.name.replace("_", " ").title() }}</h3>
+        <p><strong>Permissions:</strong> {{ ", ".join(resource.permissions) }}</p>
+        {% if "read" in resource.permissions %}
+          <a href="/admin/resource/{{ resource.name }}" class="btn">Access</a>
+        {% else %}
+          <p style="color: red;">You do not have read access.</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
 </body>
 </html>

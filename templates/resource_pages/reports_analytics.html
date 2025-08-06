@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📊 Reports Analytics</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>📊 Reports Analytics</h2>
+
+  {% if "read" in permissions %}
+    <p>Below are auto-generated analytics reports based on system data.</p>
+    <ul>
+      <li>Top 5 Selling Products</li>
+      <li>Most Active Users</li>
+      <li>Order Completion Rate</li>
+      <li>Revenue Trend (Last 30 days)</li>
+    </ul>
+    <div id="analytics-chart-container">
+      <canvas id="analyticsChart"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('analyticsChart').getContext('2d');
+      const analyticsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Product A', 'Product B', 'Product C'],
+          datasets: [{
+            label: 'Sales',
+            data: [12, 19, 8],
+            backgroundColor: ['#2196F3', '#4CAF50', '#FF9800']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    </script>
+  {% else %}
+    <p style="color: red;">You do not have access to view analytics reports.</p>
+  {% endif %}
+</body>
+</html>

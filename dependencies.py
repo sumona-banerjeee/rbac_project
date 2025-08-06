@@ -1,19 +1,18 @@
-from fastapi import Depends, HTTPException, Cookie
+from fastapi import Depends, HTTPException, Cookie, Request
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
-from models import User, RoleEnum
 from database import get_db
-from fastapi import Depends, HTTPException
-from models import RoleEnum
+from models import User, RoleEnum, PermissionEnum, Resource, ResourcePermission
 
+# 🔐 JWT Config
 SECRET_KEY = "54baa32cf3b3cd8a83179b9e4e3f483c244498fcc6c2183cc746e926f6b47e30"
 ALGORITHM = "HS256"
 
-# ✅ Authenticated user from cookie
+# 🔍 Get current user from access token stored in cookies
 def get_current_user(
     access_token: str = Cookie(default=None),
     db: Session = Depends(get_db)
-):
+) -> User:
     if not access_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
@@ -35,30 +34,50 @@ def get_current_user(
 
     return user
 
-
-
-
-# ✅ Add this below get_current_user
-def require_superadmin(user=Depends(get_current_user)):
+# 🟣 Superadmin-only route protection
+def require_superadmin(user: User = Depends(get_current_user)):
     if user.role != RoleEnum.superadmin:
         raise HTTPException(status_code=403, detail="Only Superadmin can access this route")
     return user
 
+# ✅ General permission checker (global or resource-level)
+def require_permission(permission: str, resource_name: bool = False):
+    def checker(
+        request: Request,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+    ):
+        # ✅ Superadmin has all access
+        if current_user.role == RoleEnum.superadmin:
+            return current_user
 
+        # 🔹 Check global permissions
+        if permission in [p.name for p in current_user.permissions]:
+            return current_user
 
+        # 🔹 Check resource-level permissions (e.g. /resource/{name})
+        if resource_name:
+            resource_key = request.path_params.get("name")
+            resource = db.query(Resource).filter_by(name=resource_key).first()
+            if not resource:
+                raise HTTPException(status_code=404, detail="Resource not found")
 
-# ✅ Permission-checking dependency
-def require_permission(permission: str):
-    def checker(user: User = Depends(get_current_user)):
-        if user.role == RoleEnum.superadmin:
-            return user  # Superadmin bypasses permission checks
+            rp = db.query(ResourcePermission).filter_by(
+                user_id=current_user.id,
+                resource_id=resource.id
+            ).first()
 
-        # Check if user has the required permission
-        if permission not in [p.name for p in user.permissions]:
-            raise HTTPException(status_code=403, detail=f"Missing permission: {permission}")
+            if not rp:
+                raise HTTPException(status_code=403, detail="No permission for this resource")
 
-        return user
+            if (
+                (permission == "read" and rp.can_read) or
+                (permission == "create" and rp.can_create) or
+                (permission == "update" and rp.can_update) or
+                (permission == "delete" and rp.can_delete)
+            ):
+                return current_user
+
+        raise HTTPException(status_code=403, detail=f"Missing permission: {permission}")
+
     return checker
-
-
-

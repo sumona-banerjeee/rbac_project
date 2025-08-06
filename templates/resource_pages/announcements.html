@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📢 Announcements</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>📢 Announcements</h2>
+
+  {% if "create" in permissions %}
+    <h3>Post Announcement</h3>
+    <form action="/admin/resource/announcements/create" method="post">
+      <input type="text" name="title" placeholder="Title" required>
+      <textarea name="content" placeholder="Your announcement..." required></textarea>
+      <button type="submit">Post Announcement</button>
+    </form>
+  {% endif %}
+
+  {% if "read" in permissions %}
+    <h3>All Announcements</h3>
+    {% if announcements %}
+      <ul>
+        {% for a in announcements %}
+          <li>
+            <strong>{{ a.title }}</strong> - {{ a.content }}
+            {% if "update" in permissions %}
+              <form action="/admin/resource/announcements/update/{{ a.id }}" method="post" style="margin-top:5px;">
+                <input type="text" name="title" value="{{ a.title }}" required>
+                <input type="text" name="content" value="{{ a.content }}" required>
+                <button type="submit">Update</button>
+              </form>
+            {% endif %}
+            {% if "delete" in permissions %}
+              <form action="/admin/resource/announcements/delete/{{ a.id }}" method="post" style="display:inline;">
+                <button onclick="return confirm('Delete announcement?')">Delete</button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No announcements yet.</p>
+    {% endif %}
+  {% else %}
+    <p style="color: red;">You do not have permission to view announcements.</p>
+  {% endif %}
+</body>
+</html>

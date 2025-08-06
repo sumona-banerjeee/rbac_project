@@ -5,18 +5,22 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User, RoleEnum
 from auth import create_access_token
+from utils.email_utils import send_email  # ✅ Import email utility
 import bcrypt
+from routes import superadmin, admin, user, auth_routes
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-# ✅ GET /login - Show the login form
+
+# Show the login form
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-# ✅ POST /login - Handle login logic
+# Handle login logic
 @router.post("/login")
 def login_user(
     request: Request,
@@ -47,10 +51,10 @@ def login_user(
             "error": "Invalid password"
         })
 
-    # ✅ Generate JWT token
+    # Generate JWT token
     access_token = create_access_token(data={"sub": user.email})
 
-    # ✅ Set the JWT token in an HTTP-only cookie
+    # Set the JWT token in an HTTP-only cookie
     response = RedirectResponse(
         url=(
             "/superadmin/dashboard" if user.role == RoleEnum.superadmin else
@@ -70,7 +74,7 @@ def login_user(
     return response
 
 
-# ✅ GET /logout - Clear the cookie
+# Clear the cookie
 @router.get("/logout")
 def logout():
     response = RedirectResponse("/login")
@@ -78,19 +82,19 @@ def logout():
     return response
 
 
-# ✅ GET /waiting-approval - For users not yet approved
+# For users not yet approved
 @router.get("/waiting-approval", response_class=HTMLResponse)
 def waiting_approval(request: Request):
     return templates.TemplateResponse("waiting_approval.html", {"request": request})
 
 
-# ✅ GET /signup - Show signup form
+# Show signup form
 @router.get("/signup", response_class=HTMLResponse)
 def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
 
-# ✅ POST /signup - Handle signup form submission
+# Handle signup form submission
 @router.post("/signup")
 def signup_user(
     name: str = Form(...),
@@ -105,22 +109,31 @@ def signup_user(
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
+    # Create new user
     new_user = User(
         name=name,
         email=email,
         password=hashed_pw,
-        is_approved=False,  # Superadmin will approve
+        is_approved=False,  
         is_active=1,
-        role=None  # Role will be assigned by Superadmin
+        role=None  
     )
     db.add(new_user)
     db.commit()
+
+    # Notify Superadmin
+    superadmin = db.query(User).filter(User.role == RoleEnum.superadmin).first()
+    if superadmin:
+        subject = "New User Signup Notification"
+        body = f"""
+        Hello Superadmin,
+
+        A new user has signed up with the email: {new_user.email}
+        Please login and assign a role.
+
+        Regards,
+        RBAC System
+        """
+        send_email(subject, superadmin.email, body)
+
     return RedirectResponse("/waiting-approval", status_code=303)
-
-
-
-@router.get("/logout")
-def logout():
-    response = RedirectResponse("/login")
-    response.delete_cookie("access_token")
-    return response

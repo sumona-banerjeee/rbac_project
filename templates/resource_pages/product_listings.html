@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Product Listings</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>Product Listings</h2>
+
+  {% if "create" in permissions %}
+    <h3>Add Product to Listing</h3>
+    <form action="/admin/resource/product_listings/create" method="post">
+      <input type="text" name="name" placeholder="Product Name" required>
+      <input type="text" name="description" placeholder="Description" required>
+      <input type="number" name="price" placeholder="Price" required>
+
+      
+      <select name="category" required>
+        <option value="electronics">Electronics</option>
+        <option value="fashion">Fashion</option>
+        <option value="books">Books</option>
+        <option value="other">Other</option>
+      </select>
+
+      <button type="submit">Add Product</button>
+    </form>
+  {% endif %}
+
+  {% if "read" in permissions %}
+    <h3>Listed Products</h3>
+    <table>
+      <tr>
+        <th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Actions</th>
+      </tr>
+      {% for product in products %}
+        <tr>
+          <td>{{ product.id }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.price }}</td>
+          <td>{{ product.category }}</td>
+          <td>
+            {% if "update" in permissions %}
+              <form action="/admin/resource/product_listings/update/{{ product.id }}" method="post" style="display:inline;">
+                <input type="text" name="name" placeholder="New Name" required>
+                <button type="submit">Update</button>
+              </form>
+            {% endif %}
+            {% if "delete" in permissions %}
+              <form action="/admin/resource/product_listings/delete/{{ product.id }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('Are you sure?')">Delete</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p style="color: red;">You do not have permission to view listings.</p>
+  {% endif %}
+</body>
+</html>
+

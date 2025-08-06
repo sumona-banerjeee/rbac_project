@@ -1,67 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Superadmin Dashboard</title>
-  <link rel="stylesheet" href="/static/superadmin.css">
+  <link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
-  <h2 class="dashboard-title">Superadmin Dashboard</h2>
+  <h1 style="text-align:center;">Superadmin Dashboard</h1>
+  <a href="/logout"><button>Logout</button></a>
 
-  <div class="logout-container">
-    <button onclick="location.href='/logout'" class="logout-button">Logout</button>
-  </div>
+  <h3>Pending Users:</h3>
 
-  <h3 class="pending-title">Pending Users:</h3>
-  <div class="user-container">
-    {% for user in users %}
-    <div class="user-card">
-      <div class="user-field">
-        <span class="icon" title="User">👤</span>
-        <strong>{{ user.name }}</strong>
-      </div>
-      <div class="user-field">
-        <span class="icon" title="Email">📧</span>
-        <span>{{ user.email }}</span>
-      </div>
+  {% for user in users %}
+    <form method="post" action="/superadmin/approve/{{ user.id }}" style="border: 1px solid #ccc; padding: 1rem; margin: 1rem; background: #fffff0;">
+      <p><strong>👤 {{ user.name }}</strong></p>
+      <p>📧 {{ user.email }}</p>
+      <label>Assign Role:</label>
+      <select name="role">
+        {% for role in roles %}
+          <option value="{{ role.value }}">{{ role.value.title() }}</option>
+        {% endfor %}
+      </select>
 
-      <!-- Approve Form -->
-      <form action="/superadmin/approve/{{ user.id }}" method="post">
-        <div class="user-field">
-          <span class="icon" title="Role">🛡️</span>
-          <select name="role" required>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-          </select>
+      <h4>Assign Global Permissions:</h4>
+      {% for perm in permissions %}
+        <label><input type="checkbox" name="permissions" value="{{ perm.name.value }}"> {{ perm.name.value }}</label><br>
+      {% endfor %}
+
+      <h4>Assign Resources with Permissions:</h4>
+      {% for resource in resources %}
+        <div style="margin-bottom: 0.5rem;">
+          <strong>{{ resource.name }}</strong><br>
+          <label><input type="checkbox" name="resource_{{ resource.id }}_create"> Create</label>
+          <label><input type="checkbox" name="resource_{{ resource.id }}_read"> Read</label>
+          <label><input type="checkbox" name="resource_{{ resource.id }}_update"> Update</label>
+          <label><input type="checkbox" name="resource_{{ resource.id }}_delete"> Delete</label>
         </div>
+      {% endfor %}
 
-        <div class="permissions">
-          <span class="icon" title="Permissions">🔒</span> Permissions:
-          <label><input type="checkbox" name="permissions[]" value="read"> Read</label>
-          <label><input type="checkbox" name="permissions[]" value="write"> Write</label>
-          <label><input type="checkbox" name="permissions[]" value="edit"> Edit</label>
-          <label><input type="checkbox" name="permissions[]" value="assign_roles"> Assign Roles</label>
-        </div>
+      <br>
+      <button type="submit" style="background: green; color: white;">Approve</button>
+      <a href="/superadmin/deny/{{ user.id }}"><button type="button" style="background: red; color: white;">Deny</button></a>
+    </form>
+  {% endfor %}
 
-        <div class="actions">
-          <button type="submit">Approve</button>
-        </div>
-      </form>
-
-      <!-- Deny Form (Removed csrf_token line) -->
-      <form action="/superadmin/deny/{{ user.id }}" method="post">
-        <div class="actions">
-          <button type="submit" class="deny-button">Deny</button>
-        </div>
-      </form>
-    </div>
-    {% endfor %}
-  </div>
-
-  <!-- Navigation Links -->
-  <div class="nav-links">
-    <a href="/superadmin/manage-users">Manage Users</a>
-    <a href="/superadmin/analytics-ui">View Analytics</a>
+  <div style="margin-top: 2rem; text-align:center;">
+    <a href="/superadmin/manage-users"><button>Manage Users</button></a>
+    <a href="/superadmin/analytics-ui"><button>View Analytics</button></a>
   </div>
 </body>
 </html>

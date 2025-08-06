@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📑 Reports</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>📑 Reports</h2>
+
+  {% if "create" in permissions %}
+    <h3>Generate New Report</h3>
+    <form action="/admin/resource/reports/create" method="post">
+      <input type="text" name="title" placeholder="Report Title" required>
+      <input type="text" name="parameters" placeholder="Parameters" required>
+      <button type="submit">Generate</button>
+    </form>
+  {% endif %}
+
+  {% if "read" in permissions %}
+    <h3>Existing Reports</h3>
+    <table>
+      <tr><th>ID</th><th>Title</th><th>Actions</th></tr>
+      {% for report in reports %}
+        <tr>
+          <td>{{ report.id }}</td>
+          <td>{{ report.title }}</td>
+          <td>
+            {% if "update" in permissions %}
+              <form action="/admin/resource/reports/update/{{ report.id }}" method="post" style="display:inline;">
+                <input type="text" name="title" placeholder="New Title" required>
+                <button type="submit">Update</button>
+              </form>
+            {% endif %}
+            {% if "delete" in permissions %}
+              <form action="/admin/resource/reports/delete/{{ report.id }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('Delete report?')">Delete</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p style="color: red;">You do not have permission to view reports.</p>
+  {% endif %}
+</body>
+</html>

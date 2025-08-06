@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📦 Products</title>
+  <link rel="stylesheet" href="/static/resource_style.css">
+</head>
+<body>
+  <h2>📦 Products</h2>
+
+  {% if "create" in permissions %}
+    <h3>Add New Product</h3>
+    <form action="/admin/resource/products/create" method="post">
+      <input type="text" name="name" placeholder="Product Name" required>
+      <input type="text" name="description" placeholder="Description" required>
+      <input type="number" name="price" placeholder="Price" required>
+      <input type="text" name="category" placeholder="Category" required>
+      <button type="submit">Create</button>
+    </form>
+  {% endif %}
+
+  {% if "read" in permissions %}
+    <h3>All Products</h3>
+    <table>
+      <tr>
+        <th>ID</th><th>Name</th><th>Price</th><th>Actions</th>
+      </tr>
+      {% for product in products %}
+        <tr>
+          <td>{{ product.id }}</td>
+          <td>{{ product.name }}</td>
+          <td>{{ product.price }}</td>
+          <td>
+            {% if "update" in permissions %}
+              <form action="/admin/resource/products/update/{{ product.id }}" method="post" style="display:inline;">
+                <input type="text" name="name" placeholder="New Name" required>
+                <button type="submit">Update</button>
+              </form>
+            {% endif %}
+            {% if "delete" in permissions %}
+              <form action="/admin/resource/products/delete/{{ product.id }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('Delete this product?')">Delete</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p style="color: red;">You do not have permission to view products.</p>
+  {% endif %}
+</body>
+</html>
