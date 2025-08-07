@@ -13,7 +13,7 @@
   {% for user in users %}
     <form method="post" action="/superadmin/approve/{{ user.id }}" style="border: 1px solid #ccc; padding: 1rem; margin: 1rem; background: #fffff0;">
       <p><strong>👤 {{ user.name }}</strong></p>
-      <p>📧 {{ user.email }}</p>
+      <p> {{ user.email }}</p>
       <label>Assign Role:</label>
       <select name="role">
         {% for role in roles %}

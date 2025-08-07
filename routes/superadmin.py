@@ -16,7 +16,7 @@ from utils.email_utils import send_email
 router = APIRouter(prefix="/superadmin")
 templates = Jinja2Templates(directory="templates")
 
-# 🔹 Render Superadmin Dashboard
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
     request: Request,
@@ -27,7 +27,7 @@ def dashboard(
     permissions = db.query(Permission).all()
     raw_resources = db.query(Resource).all()
 
-    # Remove duplicates
+    
     seen = set()
     resources = []
     for r in raw_resources:
@@ -124,7 +124,7 @@ async def approve_user(
 
 
 
-# 🔹 Deny a user
+
 @router.post("/deny/{user_id}")
 def deny_user(
     user_id: int,
@@ -139,7 +139,7 @@ def deny_user(
     return RedirectResponse("/superadmin/dashboard", status_code=303)
 
 
-# 🔹 Show Approved Users
+
 @router.get("/manage-users", response_class=HTMLResponse)
 def manage_users(
     request: Request,
@@ -157,7 +157,7 @@ def manage_users(
     })
 
 
-# 🔹 Delete an approved user
+
 @router.post("/delete-user/{user_id}")
 def delete_user(
     user_id: int,
@@ -186,7 +186,7 @@ def view_pending_users(
     })
 
 
-# 🔹 Render analytics dashboard (HTML)
+
 @router.get("/analytics-ui", response_class=HTMLResponse)
 def render_analytics_ui(
     request: Request,
@@ -195,7 +195,7 @@ def render_analytics_ui(
     return templates.TemplateResponse("analytics_dashboard.html", {"request": request})
 
 
-# 🔹 Provide analytics data (JSON)
+
 @router.get("/analytics-data")
 def get_analytics_data(
     db: Session = Depends(get_db),
@@ -235,7 +235,7 @@ def get_analytics_data(
     }
 
 
-# 🔹 Access a resource page
+
 @router.get("/resource/{resource_name}", response_class=HTMLResponse)
 def access_resource(
     resource_name: str,

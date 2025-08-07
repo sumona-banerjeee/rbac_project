@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>📢 Announcements</title>
+  <title> Announcements</title>
   <link rel="stylesheet" href="/static/resource_style.css">
 </head>
 <body>
-  <h2>📢 Announcements</h2>
+
+  <!-- Debugging Permissions -->
+  <p style="color:blue;">DEBUG permissions: {{ permissions }}</p>
+
+  <h2>Announcements</h2>
 
   {% if "create" in permissions %}
     <h3>Post Announcement</h3>
@@ -18,11 +22,19 @@
 
   {% if "read" in permissions %}
     <h3>All Announcements</h3>
+
+    <!-- Debug: Check if announcements are being passed -->
+    <p style="color:red;">DEBUG ANNOUNCEMENT COUNT: {{ announcements|length }}</p>
+
     {% if announcements %}
+      <!-- Optional: Show first item as debug -->
+      <p style="color:red;">DEBUG FIRST ANNOUNCEMENT: {{ announcements[0] }}</p>
+
       <ul>
         {% for a in announcements %}
           <li>
             <strong>{{ a.title }}</strong> - {{ a.content }}
+
             {% if "update" in permissions %}
               <form action="/admin/resource/announcements/update/{{ a.id }}" method="post" style="margin-top:5px;">
                 <input type="text" name="title" value="{{ a.title }}" required>
@@ -30,6 +42,7 @@
                 <button type="submit">Update</button>
               </form>
             {% endif %}
+
             {% if "delete" in permissions %}
               <form action="/admin/resource/announcements/delete/{{ a.id }}" method="post" style="display:inline;">
                 <button onclick="return confirm('Delete announcement?')">Delete</button>
@@ -41,8 +54,10 @@
     {% else %}
       <p>No announcements yet.</p>
     {% endif %}
+
   {% else %}
     <p style="color: red;">You do not have permission to view announcements.</p>
   {% endif %}
+
 </body>
 </html>

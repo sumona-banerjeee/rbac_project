@@ -14,13 +14,13 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-# Show the login form
+
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
-# Handle login logic
+
 @router.post("/login")
 def login_user(
     request: Request,
@@ -51,10 +51,10 @@ def login_user(
             "error": "Invalid password"
         })
 
-    # Generate JWT token
+    
     access_token = create_access_token(data={"sub": user.email})
 
-    # Set the JWT token in an HTTP-only cookie
+    
     response = RedirectResponse(
         url=(
             "/superadmin/dashboard" if user.role == RoleEnum.superadmin else
@@ -74,7 +74,7 @@ def login_user(
     return response
 
 
-# Clear the cookie
+
 @router.get("/logout")
 def logout():
     response = RedirectResponse("/login")
@@ -82,19 +82,19 @@ def logout():
     return response
 
 
-# For users not yet approved
+
 @router.get("/waiting-approval", response_class=HTMLResponse)
 def waiting_approval(request: Request):
     return templates.TemplateResponse("waiting_approval.html", {"request": request})
 
 
-# Show signup form
+
 @router.get("/signup", response_class=HTMLResponse)
 def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
 
-# Handle signup form submission
+
 @router.post("/signup")
 def signup_user(
     name: str = Form(...),
@@ -104,12 +104,12 @@ def signup_user(
 ):
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
-    # Check if user already exists
+    
     existing_user = db.query(User).filter_by(email=email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")
 
-    # Create new user
+    
     new_user = User(
         name=name,
         email=email,
@@ -121,7 +121,7 @@ def signup_user(
     db.add(new_user)
     db.commit()
 
-    # Notify Superadmin
+    
     superadmin = db.query(User).filter(User.role == RoleEnum.superadmin).first()
     if superadmin:
         subject = "New User Signup Notification"

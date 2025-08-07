@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User, RoleEnum, PermissionEnum, Resource, ResourcePermission
 
-# 🔐 JWT Config
+
 SECRET_KEY = "54baa32cf3b3cd8a83179b9e4e3f483c244498fcc6c2183cc746e926f6b47e30"
 ALGORITHM = "HS256"
 
-# 🔍 Get current user from access token stored in cookies
+
 def get_current_user(
     access_token: str = Cookie(default=None),
     db: Session = Depends(get_db)
@@ -34,28 +34,28 @@ def get_current_user(
 
     return user
 
-# 🟣 Superadmin-only route protection
+
 def require_superadmin(user: User = Depends(get_current_user)):
     if user.role != RoleEnum.superadmin:
         raise HTTPException(status_code=403, detail="Only Superadmin can access this route")
     return user
 
-# ✅ General permission checker (global or resource-level)
+
 def require_permission(permission: str, resource_name: bool = False):
     def checker(
         request: Request,
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
     ):
-        # ✅ Superadmin has all access
+        
         if current_user.role == RoleEnum.superadmin:
             return current_user
 
-        # 🔹 Check global permissions
+        
         if permission in [p.name for p in current_user.permissions]:
             return current_user
 
-        # 🔹 Check resource-level permissions (e.g. /resource/{name})
+        
         if resource_name:
             resource_key = request.path_params.get("name")
             resource = db.query(Resource).filter_by(name=resource_key).first()
@@ -81,3 +81,4 @@ def require_permission(permission: str, resource_name: bool = False):
         raise HTTPException(status_code=403, detail=f"Missing permission: {permission}")
 
     return checker
+

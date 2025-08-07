@@ -33,11 +33,14 @@ def seed_permissions(db):
 from models import Resource
 
 def seed_resources(db):
+    
     default_resources = [
-        "users_management", "product_listings", "order_management",
-        "reports_analytics", "payments_verification", "announcements",
-        "Dashboard", "Products", "Users", "Orders", "Analytics", "Reports"
+    "users_management", "product_listings",
+    "reports_analytics", "payments_verification", "announcements",
+    "Dashboard"
     ]
+
+
     for res in default_resources:
         exists = db.query(Resource).filter_by(name=res).first()
         if not exists:

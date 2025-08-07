@@ -176,10 +176,12 @@ class ResourcePermission(Base):
     resource = relationship("Resource")
 
 
+
+
 class Announcement(Base):
-    __tablename__ = "announcements"
+    __tablename__ = "announcements"  
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(100))
-    content = Column(Text)
+    title = Column(String(100), nullable=False)
+    content = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
