@@ -6,13 +6,13 @@ from dependencies import get_current_user
 from models import Product, User, Purchase, Resource, ResourcePermission, RoleEnum 
 from database import get_db
 import os
-import bcrypt
-from models import Product 
-from fastapi import Form
+import bcrypt 
 from utils.email_utils import send_email
 from models import Announcement
+from sqlalchemy import func 
+from database import engine
 
-router = APIRouter()
+
 router = APIRouter(prefix="/admin", tags=["Admin"])
 templates = Jinja2Templates(directory="templates")
 
@@ -113,6 +113,7 @@ async def update_resource_item(
     for key, value in form.items():
         if hasattr(item, key):
             setattr(item, key, value)
+            
 
     db.commit()
     return RedirectResponse(f"/admin/resource/{resource_name}", status_code=303)
@@ -221,457 +222,117 @@ def view_orders(
 
 
 
-@router.get("/resource/users_management", response_class=HTMLResponse)
-def view_users_management(
+model_map = {
+    "users_management": (User, "resource_pages/users_management.html"),
+    "product_listings": (Product, "resource_pages/product_listings.html"),
+    "reports_analytics": (None, "resource_pages/reports_analytics.html"),
+    "payments_verification": (None, "resource_pages/payments_verification.html"),
+    "announcements": (Announcement, "resource_pages/announcements.html"),
+    "dashboard": (None, "resource_pages/dashboard.html")
+}
+
+
+@router.get("/resource/{resource_name}", response_class=HTMLResponse)
+def view_resource_list(
+    resource_name: str,
     request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user.has_permission(db, "users_management", "read"):
+    if resource_name not in model_map:
+        raise HTTPException(status_code=404, detail="Resource not found")
+
+    model, template_name = model_map[resource_name]
+
+    if not current_user.has_permission(db, resource_name, "read"):
         raise HTTPException(status_code=403, detail="Access Denied")
 
-    if current_user.role == RoleEnum.superadmin:
-        users = db.query(User).filter(User.role != RoleEnum.superadmin).all()
-    else:
-        users = db.query(User).filter(
-            User.created_by != None,
-            User.created_by != 1,
-            User.id != current_user.id
-        ).all()
+    items = db.query(model).all()
+    permissions = current_user.get_resource_permissions(db, resource_name)
 
-    permissions = current_user.get_resource_permissions(db, "users_management")
-    return templates.TemplateResponse("users_management.html", {
+    return templates.TemplateResponse(template_name, {
         "request": request,
-        "users": users,
+        "items": items,
         "permissions": permissions
     })
 
 
-@router.post("/resource/users_management/create")
-async def create_user_by_admin(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "users_management", "create"):
-        raise HTTPException(status_code=403, detail="Permission denied.")
-
-    form = await request.form()
-    name = form["name"]
-    email = form["email"]
-    password = form["password"]
-    role = form["role"]
-
-    if db.query(User).filter_by(email=email).first():
-        raise HTTPException(status_code=400, detail="User already exists")
-
-    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-    new_user = User(
-    name=name,
-    email=email,
-    password=hashed_pw,
-    role=None,  # No role yet
-    is_approved=False,  # Wait for Superadmin
-    is_active=False,  # Not active until approved
-    created_by=current_user.id
-)
-
-    db.add(new_user)
-    db.commit()
-    superadmin = db.query(User).filter(User.role == RoleEnum.superadmin).first()
-    if superadmin:
-     subject = "New User Created by Admin"
-     body = f"""
-      Hello Superadmin,
-
-      A new user has been created by Admin:
-     Name: {new_user.name}
-     Email: {new_user.email}
-
-     Please login and approve this user.
-
-     Regards,
-     RBAC System
-     """
-     send_email(subject, superadmin.email, body)
-
-    return RedirectResponse("/admin/resource/users_management", status_code=303)
-
-
-@router.post("/resource/users_management/update/{user_id}")
-def update_user_role(
-    user_id: int,
-    role: str = Form(...),
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "users_management", "update"):
-        raise HTTPException(status_code=403, detail="Permission denied.")
-
-    user = db.query(User).filter_by(id=user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    user.role = RoleEnum(role)
-    db.commit()
-    return RedirectResponse("/admin/resource/users_management", status_code=303)
-
-
-@router.post("/resource/users_management/delete/{user_id}")
-def delete_user_by_admin(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "users_management", "delete"):
-        raise HTTPException(status_code=403, detail="Permission denied.")
-
-    user = db.query(User).filter_by(id=user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    db.delete(user)
-    db.commit()
-    return RedirectResponse("/admin/resource/users_management", status_code=303)
 
 
 
-
-
-@router.get("/resource/product_listings", response_class=HTMLResponse)
-def view_product_listings(
+@router.post("/resource/{resource_name}/create")
+async def create_resource_item(
+    resource_name: str,
     request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user.has_permission(db, "product_listings", "read"):
-        raise HTTPException(status_code=403, detail="Access Denied")
+    if resource_name not in model_map:
+        raise HTTPException(status_code=404, detail="Resource not found")
 
-    products = db.query(Product).all()
+    model, _ = model_map[resource_name]
 
-    return templates.TemplateResponse("resource_pages/product_listings.html", {
-        "request": request,
-        "products": products,
-        "permissions": current_user.get_resource_permissions(db, "product_listings")
-    })
-
-
-
-
-@router.post("/resource/product_listings/create")
-async def create_product_listing(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "product_listings", "create"):
+    if not current_user.has_permission(db, resource_name, "create"):
         raise HTTPException(status_code=403, detail="Access Denied")
 
     form = await request.form()
-    new_product = Product(
-        name=form["name"],
-        description=form["description"],
-        price=float(form["price"]),
-        category=form["category"],
-        created_by=current_user.id
-    )
-    db.add(new_product)
+    new_item = model(**form)  # Fill columns dynamically
+    db.add(new_item)
     db.commit()
-    return RedirectResponse("/admin/resource/product_listings", status_code=303)
+
+    return RedirectResponse(f"/admin/resource/{resource_name}", status_code=303)
 
 
 
-@router.post("/resource/product_listings/update/{product_id}")
-async def update_product_listing(
-    product_id: int,
-    name: str = Form(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "product_listings", "update"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    product = db.query(Product).filter_by(id=product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    product.name = name
-    db.commit()
-    return RedirectResponse("/admin/resource/product_listings", status_code=303)
-
-
-
-
-@router.post("/resource/product_listings/delete/{product_id}")
-def delete_product_listing(
-    product_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "product_listings", "delete"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    product = db.query(Product).filter_by(id=product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    db.delete(product)
-    db.commit()
-    return RedirectResponse("/admin/resource/product_listings", status_code=303)
-
-
-
-
-
-@router.get("/resource/order_management", response_class=HTMLResponse)
-def view_order_management(
+@router.post("/resource/{resource_name}/update/{item_id}")
+async def update_resource_item(
+    resource_name: str,
+    item_id: int,
     request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user.has_permission(db, "order_management", "read"):
+    if resource_name not in model_map:
+        raise HTTPException(status_code=404, detail="Resource not found")
+
+    model, _ = model_map[resource_name]
+
+    if not current_user.has_permission(db, resource_name, "update"):
         raise HTTPException(status_code=403, detail="Access Denied")
 
-    orders = db.query(Purchase).all()
-    return templates.TemplateResponse("resource_pages/order_management.html", {
-        "request": request,
-        "orders": orders,
-        "permissions": current_user.get_resource_permissions(db, "order_management")
-    })
-
-
-@router.post("/resource/order_management/create")
-async def create_order_management(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "order_management", "create"):
-        raise HTTPException(status_code=403, detail="Access Denied")
+    item = db.query(model).filter_by(id=item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
 
     form = await request.form()
-    product_id = int(form["product_id"])
-    quantity = int(form["quantity"])
+    for key, value in form.items():
+        if hasattr(item, key):
+            setattr(item, key, value)
 
-    new_order = Purchase(
-        user_id=current_user.id,
-        product_id=product_id,
-        quantity=quantity
-    )
-    db.add(new_order)
     db.commit()
-    return RedirectResponse("/admin/resource/order_management", status_code=303)
+    return RedirectResponse(f"/admin/resource/{resource_name}", status_code=303)
 
 
-@router.post("/resource/order_management/update/{order_id}")
-async def update_order_management(
-    order_id: int,
-    quantity: int = Form(...),
+
+@router.post("/resource/{resource_name}/delete/{item_id}")
+def delete_resource_item(
+    resource_name: str,
+    item_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not current_user.has_permission(db, "order_management", "update"):
+    if resource_name not in model_map:
+        raise HTTPException(status_code=404, detail="Resource not found")
+
+    model, _ = model_map[resource_name]
+
+    if not current_user.has_permission(db, resource_name, "delete"):
         raise HTTPException(status_code=403, detail="Access Denied")
 
-    order = db.query(Purchase).filter_by(id=order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+    item = db.query(model).filter_by(id=item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
 
-    order.quantity = quantity
+    db.delete(item)
     db.commit()
-    return RedirectResponse("/admin/resource/order_management", status_code=303)
-
-
-@router.post("/resource/order_management/delete/{order_id}")
-def delete_order_management(
-    order_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "order_management", "delete"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    order = db.query(Purchase).filter_by(id=order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-
-    db.delete(order)
-    db.commit()
-    return RedirectResponse("/admin/resource/order_management", status_code=303)
-
-
-
-
-
-@router.get("/resource/dashboard", response_class=HTMLResponse)
-def view_dashboard(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "dashboard", "read"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    
-    total_users = db.query(User).count()
-    total_products = db.query(Product).count()
-
-   
-    total_sales = db.query(Purchase).join(Product).with_entities(
-        func.sum(Product.price)
-    ).scalar() or 0.0
-
-    
-    from sqlalchemy import func
-    sales_by_date = (
-        db.query(func.date(Purchase.created_at), func.sum(Product.price))
-        .join(Product, Product.id == Purchase.product_id)
-        .group_by(func.date(Purchase.created_at))
-        .all()
-    )
-
-    sales_dates = [str(date) for date, _ in sales_by_date]
-    sales_values = [float(value) for _, value in sales_by_date]
-
-    return templates.TemplateResponse("resource_pages/dashboard.html", {
-        "request": request,
-        "permissions": current_user.get_resource_permissions(db, "dashboard"),
-        "stats": {
-            "total_users": total_users,
-            "total_products": total_products,
-            "total_sales": total_sales,
-            "sales_dates": sales_dates,
-            "sales_values": sales_values
-        }
-    })
-
-
-
-
-@router.get("/resource/payments_verification", response_class=HTMLResponse)
-def view_payments_verification(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "payments_verification", "read"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    payments = db.query(Product).filter(Product.payment_method != None).all()
-
-    return templates.TemplateResponse("resource_pages/payments_verification.html", {
-        "request": request,
-        "payments": payments,
-        "permissions": current_user.get_resource_permissions(db, "payments_verification")
-    })
-
-
-@router.post("/resource/payments_verification/update/{product_id}")
-async def update_payment_status(
-    product_id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "payments_verification", "update"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    form = await request.form()
-    new_status = form["payment_status"]
-
-    product = db.query(Product).filter_by(id=product_id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-
-    product.payment_status = new_status
-    db.commit()
-
-    return RedirectResponse("/admin/resource/payments_verification", status_code=303)
-
-
-
-
-
-
-
-@router.get("/resource/announcements", response_class=HTMLResponse)
-def view_announcements(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "announcements", "read"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    announcements = db.query(Announcement).order_by(Announcement.created_at.desc()).all()
-
-    print("DEBUG ANNOUNCEMENTS:", announcements)  # 🧪 Debug: check list
-    print("DEBUG ANNOUNCEMENT COUNT:", len(announcements))  # 🧪
-
-    return templates.TemplateResponse("resource_pages/announcements.html", {
-        "request": request,
-        "announcements": announcements,
-        "permissions": current_user.get_resource_permissions(db, "announcements")
-    })
-
-
-@router.post("/resource/announcements/create")
-async def create_announcement(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "announcements", "create"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    form = await request.form()
-    title = form["title"]
-    content = form["content"]
-
-    new_announcement = Announcement(title=title, content=content)
-    db.add(new_announcement)
-    db.commit()
-    return RedirectResponse("/admin/resource/announcements", status_code=303)
-
-
-@router.post("/resource/announcements/update/{id}")
-async def update_announcement(
-    id: int,
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "announcements", "update"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    form = await request.form()
-    announcement = db.query(Announcement).filter_by(id=id).first()
-
-    if not announcement:
-        raise HTTPException(status_code=404, detail="Announcement not found")
-
-    announcement.title = form["title"]
-    announcement.content = form["content"]
-    db.commit()
-    return RedirectResponse("/admin/resource/announcements", status_code=303)
-
-
-@router.post("/resource/announcements/delete/{id}")
-def delete_announcement(
-    id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    if not current_user.has_permission(db, "announcements", "delete"):
-        raise HTTPException(status_code=403, detail="Access Denied")
-
-    announcement = db.query(Announcement).filter_by(id=id).first()
-
-    if not announcement:
-        raise HTTPException(status_code=404, detail="Announcement not found")
-
-    db.delete(announcement)
-    db.commit()
-    return RedirectResponse("/admin/resource/announcements", status_code=303)
-
+    return RedirectResponse(f"/admin/resource/{resource_name}", status_code=303)

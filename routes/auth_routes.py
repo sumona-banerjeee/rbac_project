@@ -5,9 +5,11 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import User, RoleEnum
 from auth import create_access_token
-from utils.email_utils import send_email  # ✅ Import email utility
+from utils.email_utils import send_email  
 import bcrypt
 from routes import superadmin, admin, user, auth_routes
+from fastapi import Depends
+
 
 
 router = APIRouter()
@@ -137,3 +139,7 @@ def signup_user(
         send_email(subject, superadmin.email, body)
 
     return RedirectResponse("/waiting-approval", status_code=303)
+
+
+
+

@@ -1,5 +1,13 @@
 from dotenv import load_dotenv
+import os
+
+
 load_dotenv()
+
+
+SUPERADMIN_NAME = os.getenv("SUPERADMIN_NAME")
+SUPERADMIN_EMAIL = os.getenv("SUPERADMIN_EMAIL")
+SUPERADMIN_PASSWORD = os.getenv("SUPERADMIN_PASSWORD")
 
 from fastapi import FastAPI, Request
 from database import engine, Base, SessionLocal
@@ -28,28 +36,16 @@ def seed_permissions(db):
     db.commit()
 
 
-
-
-from models import Resource
-
 def seed_resources(db):
-    
     default_resources = [
-    "users_management", "product_listings",
-    "reports_analytics", "payments_verification", "announcements",
-    "Dashboard"
+        "users_management", "product_listings",
+        "reports_analytics", "payments_verification",
+        "announcements", "Dashboard"
     ]
-
-
     for res in default_resources:
-        exists = db.query(Resource).filter_by(name=res).first()
-        if not exists:
+        if not db.query(Resource).filter_by(name=res).first():
             db.add(Resource(name=res))
     db.commit()
-
-
-
-
 
 
 @app.on_event("startup")
@@ -57,14 +53,14 @@ def create_default_superadmin():
     db = SessionLocal()
 
     seed_permissions(db)
-    seed_resources(db) 
+    seed_resources(db)
 
-    existing_superadmin = db.query(User).filter_by(email="sumobanerjee2000@gmail.com").first()
+    existing_superadmin = db.query(User).filter_by(email=SUPERADMIN_EMAIL).first()
     if not existing_superadmin:
-        hashed_pw = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
+        hashed_pw = bcrypt.hashpw(SUPERADMIN_PASSWORD.encode(), bcrypt.gensalt()).decode()
         superadmin = User(
-            name="Sumona Banerjee",
-            email="sumobanerjee2000@gmail.com",
+            name=SUPERADMIN_NAME,
+            email=SUPERADMIN_EMAIL,
             password=hashed_pw,
             role=RoleEnum.superadmin,
             is_approved=True,
@@ -72,9 +68,9 @@ def create_default_superadmin():
         )
         db.add(superadmin)
         db.commit()
-        print("Superadmin created with email: sumobanerjee2000@gmail.com and password: admin123")
+        print(f"Superadmin created with email: {SUPERADMIN_EMAIL}")
     else:
-        print(" Superadmin already exists")
+        print("Superadmin already exists")
 
     db.close()
 

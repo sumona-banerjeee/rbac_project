@@ -1,19 +1,13 @@
 from sqlalchemy import (
-    Column, Integer, String, Enum, ForeignKey,
-    Table, Boolean, Float, DateTime
+    Column, Integer, String, Enum, ForeignKey, Table, Boolean, Float, DateTime
 )
 from sqlalchemy.orm import relationship
-from database import Base
 from datetime import datetime
 import enum
 from sqlalchemy import Enum as SqlEnum
-from sqlalchemy import DateTime
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime
-from datetime import datetime
+from database import Base
 
-
-
+# --- Enums ---
 class RoleEnum(str, enum.Enum):
     superadmin = "superadmin"
     admin = "admin"
@@ -36,8 +30,7 @@ class PaymentMethod(str, enum.Enum):
     upi = "upi"
     card = "card"
 
-
-
+# --- Association Table ---
 user_permissions = Table(
     "user_permissions",
     Base.metadata,
@@ -45,8 +38,7 @@ user_permissions = Table(
     Column("permission_name", SqlEnum(PermissionEnum), ForeignKey("permissions.name"))
 )
 
-
-
+# --- Models ---
 class Permission(Base):
     __tablename__ = "permissions"
     name = Column(SqlEnum(PermissionEnum), primary_key=True)
@@ -65,28 +57,22 @@ class User(Base):
     is_denied = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
-    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)  
-    creator = relationship("User", remote_side=[id], backref="created_users")  
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    creator = relationship("User", remote_side=[id], backref="created_users")
 
-    
     permissions = relationship("Permission", secondary=user_permissions, back_populates="users")
 
-    
     products = relationship("Product", back_populates="owner")
     purchases = relationship("Purchase", back_populates="buyer")
     resource_permissions = relationship("ResourcePermission", back_populates="user")
 
-   
     def has_permission(self, db, resource_name: str, action: str) -> bool:
-        from models import Resource, ResourcePermission  # avoid circular imports
         resource = db.query(Resource).filter_by(name=resource_name).first()
         if not resource:
             return False
-
         rp = db.query(ResourcePermission).filter_by(user_id=self.id, resource_id=resource.id).first()
         if not rp:
             return False
-
         return {
             "create": rp.can_create,
             "read": rp.can_read,
@@ -94,21 +80,15 @@ class User(Base):
             "delete": rp.can_delete,
         }.get(action, False)
 
-    
     def get_resource_permissions(self, db, resource_name):
-        from models import Resource, ResourcePermission
         resource = db.query(Resource).filter_by(name=resource_name).first()
         if not resource:
             return []
-
         rp = db.query(ResourcePermission).filter_by(
-            user_id=self.id,
-            resource_id=resource.id
+            user_id=self.id, resource_id=resource.id
         ).first()
-
         if not rp:
             return []
-
         perms = []
         if rp.can_create: perms.append("create")
         if rp.can_read: perms.append("read")
@@ -134,12 +114,8 @@ class Product(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_sold = Column(Boolean, default=False)
 
-   
     owner = relationship("User", back_populates="products", foreign_keys=[created_by])
-    
     purchases = relationship("Purchase", back_populates="product")
-
-
 
 
 class Purchase(Base):
@@ -157,7 +133,7 @@ class Purchase(Base):
 class Resource(Base):
     __tablename__ = "resources"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True) 
+    name = Column(String, unique=True)
 
 
 class ResourcePermission(Base):
@@ -176,11 +152,8 @@ class ResourcePermission(Base):
     resource = relationship("Resource")
 
 
-
-
 class Announcement(Base):
-    __tablename__ = "announcements"  
-
+    __tablename__ = "announcements"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(100), nullable=False)
     content = Column(String, nullable=False)

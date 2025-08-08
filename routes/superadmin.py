@@ -172,7 +172,8 @@ def delete_user(
     return RedirectResponse("/superadmin/manage-users", status_code=303)
 
 
-# 🔹 View pending users
+
+
 @router.get("/approvals", response_class=HTMLResponse)
 def view_pending_users(
     request: Request,
@@ -237,15 +238,13 @@ def get_analytics_data(
 
 
 @router.get("/resource/{resource_name}", response_class=HTMLResponse)
-def access_resource(
-    resource_name: str,
-    request: Request,
-    current_user: User = Depends(require_permission("read", resource_name=True))
-):
-    file_path = f"resource_pages/{resource_name}.html"
-    full_path = f"templates/{file_path}"
+def require_permission(permission: str):
+    def permission_checker(
+        resource_name: str,
+        current_user: User = Depends(get_current_user)
+    ):
+        if not current_user.has_permission(current_user.db, resource_name, permission):
+            raise HTTPException(status_code=403, detail="Permission Denied")
+        return current_user
 
-    if not os.path.exists(full_path):
-        raise HTTPException(status_code=404, detail="Page Not Found")
-
-    return templates.TemplateResponse(file_path, {"request": request})
+    return permission_checker

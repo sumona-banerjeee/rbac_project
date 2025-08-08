@@ -2,12 +2,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql://postgres:sum12345@localhost:5432/rbac_project"
+
+DATABASE_URL = "postgresql://postgres:sum12345@localhost:5432/Test"
 
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-
 Base = declarative_base()
 
 
@@ -17,5 +17,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-

@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>📊 Dashboard</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="/static/resource_style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h2>📊 Dashboard Overview</h2>
+  <h2>Dashboard Overview</h2>
 
   {% if "read" in permissions %}
     <div class="dashboard-widgets">
 
-      <!-- Example KPI Cards -->
+      
       <div class="card">
         <h3>Total Users</h3>
         <p>{{ stats.total_users }}</p>
@@ -27,7 +27,7 @@
         <p>{{ stats.total_products }}</p>
       </div>
 
-      <!-- Example Chart -->
+      
       <div style="width: 600px;">
         <canvas id="salesChart"></canvas>
       </div>
